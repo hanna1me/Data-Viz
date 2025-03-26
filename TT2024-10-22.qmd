@@ -1,0 +1,53 @@
+---
+title: "TT2024-10-22"
+subtitle: "CIA World Factbook Data"
+author: "Hanna Chang"
+format: html
+editor: visual
+---
+
+##Loading packages
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(readr)
+library(sf)
+library(scales)
+```
+
+##Loading data
+
+```{r, message=FALSE, warning=FALSE}
+cia_factbook <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-22/cia_factbook.csv')
+```
+
+Looking at the data, I think I'd like to explore the relationship between birth_rate, death_rate, and population_growth_rate, making a clear visualization for each country. I wouldn't have to do any data wrangling for this, as the data is already very clean and tidy.
+
+## Displaying the average population growth rate by country, using birth_rate and death_rate
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(cia_factbook) +
+    geom_point(aes(x = birth_rate, y = death_rate,
+                   color = population_growth_rate)) +
+    geom_text(aes(x = birth_rate, y = death_rate, label = country), 
+              vjust = -0.5, size = 1.5, check_overlap = TRUE) +
+    scale_color_viridis_c() +
+    labs(title = "Average population growth rate by country",
+         subtitle = "CIA World Factbook Data",
+         x = "Birth rate (per 1000 people)",
+         y = "Death rate (per 1000 people)",
+         color = "Population growth rate") +
+    theme_minimal() +
+    theme(legend.position = "bottom") +
+    theme(plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5)) +
+    theme(axis.title.x = element_text(size = 10),
+          axis.title.y = element_text(size = 10),
+          axis.text.x = element_text(size = 8),
+          axis.text.y = element_text(size = 8))
+```
+
+Based on the above visual, it could be interesting to find out which countries have the highest and lowest birth rates, death rates, and population growth rates considering outside factors like GDP, literacy rate, and infant mortality rate for future inquiries.
+

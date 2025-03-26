@@ -1,0 +1,137 @@
+---
+title: "TT2024-08-13"
+subtitle: "UNESCO World Heritage Sites"
+author: "Hanna Chang"
+format: html
+editor: visual
+---
+
+## Loading packages
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(ggrepel)
+library(stringr)
+library(forcats)
+```
+
+## Loading data
+
+```{r, message=FALSE, warning=FALSE}
+worlds_fairs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-08-13/worlds_fairs.csv')
+```
+
+## Data Exploration
+
+```{r}
+names(worlds_fairs)
+head(worlds_fairs)
+```
+
+## Data Wrangling
+
+```{r}
+worlds_fairs_clean <- worlds_fairs %>%
+  mutate(
+    name_of_exposition = str_wrap(name_of_exposition, width = 30),
+    start_year = as.numeric(start_year),
+    end_year   = as.numeric(end_year),
+    start_month = as.numeric(start_month),
+    end_month   = as.numeric(end_month),
+    start_date = start_year + (start_month - 1) / 12,
+    end_date   = end_year + (end_month - 1) / 12
+  ) %>%
+  group_by(country) %>%
+  mutate(name_of_exposition = fct_reorder(name_of_exposition, start_date)) %>%
+  ungroup()
+```
+
+```{r}
+worlds_fairs$name_of_exposition <- str_wrap(worlds_fairs$name_of_exposition, width = 30)
+
+worlds_fairs$start_year <- as.numeric(worlds_fairs$start_year)
+worlds_fairs$end_year <- as.numeric(worlds_fairs$end_year)
+worlds_fairs$start_month <- as.numeric(worlds_fairs$start_month)
+worlds_fairs$end_month <- as.numeric(worlds_fairs$end_month)
+
+# Calculate the start date and end date (from months and years)
+worlds_fairs$start_date <- worlds_fairs$start_year + (worlds_fairs$start_month - 1) / 12
+worlds_fairs$end_date <- worlds_fairs$end_year + (worlds_fairs$end_month - 1) / 12
+```
+
+
+## Data Viz
+
+```{r, fig.width=20, fig.height=12, warning=FALSE, message=FALSE}
+ggplot(worlds_fairs, aes(
+    x = start_date,
+    xend = end_date,
+    y = name_of_exposition,
+    yend = name_of_exposition,
+    color = country
+  )) +
+  geom_segment(size = 1.2) +
+  geom_text_repel(
+    aes(
+      x = end_date,
+      label = name_of_exposition
+    ),
+    hjust = 0, size = 3, max.overlaps = 50,
+  ) +
+  labs(
+    title = "Timeline of World's Fairs",
+    x = "Year",
+    y = NULL,
+    color = "Country"
+  ) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.1))) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    plot.title = element_text(hjust = 0.45, vjust = -1, face = "bold", size = 16),
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 12),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+```
+
+```{r, fig.width=18, fig.height=12, warning=FALSE, message=FALSE}
+# Plot with facet by country
+ggplot(worlds_fairs_clean, aes(
+  x = start_date,
+  xend = end_date,
+  y = name_of_exposition,
+  yend = name_of_exposition
+)) +
+  geom_segment(aes(color = country), size = 1.2) +
+  geom_text_repel(
+    aes(label = name_of_exposition, color = country),
+    hjust = 0,
+    nudge_x = 0.1,
+    size = 2.5,
+    max.overlaps = 30
+  ) +
+  facet_wrap(~ country, scales = "free_y") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Timeline of World's Fairs by Country",
+    x = "Year",
+    y = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.title = element_text(size = 12, face = "bold")
+  )
+```
+
+

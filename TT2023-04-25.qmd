@@ -1,0 +1,89 @@
+---
+title: "TT2023-04-25"
+subtitle: "London Marathon Winners"
+author: "Hanna Chang"
+format: html
+editor: visual
+---
+## Loading packages
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+## Loading data
+
+```{r, message=FALSE, warning=FALSE}
+winners <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-25/winners.csv')
+london_marathon <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-04-25/london_marathon.csv')
+```
+
+## Data Context Exploration
+
+```{r}
+head(winners)
+head(london_marathon)
+```
+
+## Research Question
+
+> What is the most effective way to view winners by country in each categories?
+
+## Data Wrangling + Viz
+
+```{r}
+winnersLondon = merge(winners, london_marathon, by = "Year")
+
+# Reorder categories
+winnersLondon <- winnersLondon %>%
+  mutate(Category = factor(Category, 
+                           levels = c("Men", "Wheelchair Men", 
+                                      "Women", "Wheelchair Women")))
+
+# Summarize winners and plot
+winnersLondon %>%
+  group_by(Category, Nationality) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  ggplot(aes(x = Nationality, y = Category)) +
+  geom_point(
+    aes(size = n, fill = Category),
+    shape = 21, color = "black", stroke = 0.2, alpha = 0.7
+  ) +
+  # Use area scaling so the circle area (not radius) is proportional to n
+  scale_size_area(
+    max_size = 12,
+    guide = guide_legend(
+      title = "Number of Winners",
+      title.position = "top"
+    )
+  ) +
+  # Manually set category colors or use a palette function
+  scale_fill_manual(
+    name = "Category",
+    values = c("Men" = "#1f78b4",
+               "Wheelchair Men" = "#a6cee3",
+               "Women" = "#fb9a99",
+               "Wheelchair Women" = "#e31a1c")
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    # Rotate and align x-axis labels
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    # Adjust legend position
+    legend.position = "right",
+    # Tweak title text settings
+    plot.title = element_text(
+      hjust = 0.5, 
+      size = 14, 
+      face = "bold"
+    ),
+    plot.title.position = "plot"
+  ) +
+  labs(
+    x = "Nationality",
+    y = "Category",
+    title = "Number of London Marathon Winners by Category\nand Nationality"
+  )
+```
