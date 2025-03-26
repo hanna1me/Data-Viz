@@ -2,9 +2,7 @@
 title: "Tidy Tuesday 2024-10-08"
 subtitle: "National Parks Species Data"
 author: "Hanna Chang"
-format: 
-  html:
-    embed-resources: true
+format: html
 ---
 
 ## Loading packages
